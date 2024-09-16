@@ -59,10 +59,10 @@ class Archive():
     "File archiving management."
     def __init__(self):
         self.output_path = f"{BASE_PATH}/tmp/ZIP"
-    def create(self, path, chunks):
+    def create(self, path, chunks, compression, compresslevel):
         for i in split_files(path, chunks):
             global CHUNKS
-            resultzip = zipfile.ZipFile(f"{self.output_path}_{CHUNKS}.zip", "w", compresslevel=9)
+            resultzip = zipfile.ZipFile(f"{self.output_path}_{CHUNKS}.zip", "w", compression=compression, compresslevel=compresslevel)
             for i in i: resultzip.write(i, i)
             CHUNKS+=1
 

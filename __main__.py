@@ -57,9 +57,44 @@ print(f"""
 You're going to divide the files by
     {files_len}
 per archive.
-The utility will use this project name in the text of the installer GUI.
 
 """)
+
+path_confirm = confirm('path_confirm', f"Are you sure?")
+if path_confirm.get('path_confirm') is 'Yes': pass
+else: sys.exit()
+
+print(f"""
+Select the archive compression method.
+""")
+compression = menu('compression', "Compression",
+                                                ["No compression (STORED)",
+                                                "Speed and compression balance (DEFLATED)",
+                                                "More compression, less speed (BZIP2)",
+                                                "MAX compression, MINIMUM speed! (LZMA)"
+                                                ])
+
+if compression.get('compression') is "No compression (STORED)": compression = zipfile.ZIP_STORED; compression_str = "zipfile.ZIP_STORED"; compresslevel = None
+elif compression.get('compression') is "Speed and compression balance (DEFLATED)": compression = zipfile.ZIP_DEFLATED; compression_str = "zipfile.ZIP_DEFLATED"
+elif compression.get('compression') is "More compression, less speed (BZIP2)": compression = zipfile.ZIP_BZIP2; compression_str = "zipfile.ZIP_BZIP2"
+elif compression.get('compression') is "MAX compression, MINIMUM speed! (LZMA)": compression = zipfile.ZIP_LZMA; compression_str = "zipfile.ZIP_LZMA"
+
+if compression is not zipfile.ZIP_STORED:
+    print(f"""
+Select the compression level (1 - 9).
+    """)
+
+    compresslevel = input()
+    if compresslevel is '' or compresslevel is '0' or compresslevel is None: raise ValueError("Compression level can't be empty, be equal to 0, or be a string.")
+    compresslevel = int(compresslevel)
+    if compresslevel > 9: compresslevel = 9
+
+    print(f"""
+You've chosen a compression method
+    {compression_str}
+at level
+    {compresslevel}.
+    """)
 
 path_confirm = confirm('path_confirm', f"Are you sure?")
 if path_confirm.get('path_confirm') is 'Yes': pass
@@ -75,7 +110,7 @@ print('\nCreating...\n')
 output_path = Archive().output_path
 print('     Temp archive...')
 print('         Creating...')
-Archive().create(path, files_len)
+Archive().create(path, files_len, compression, compresslevel)
 print('     Scripts for installer...')
 print('         Copying files...')
 InstallerGen(project_name).copy_data()
