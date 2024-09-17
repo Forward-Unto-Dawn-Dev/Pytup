@@ -1,8 +1,7 @@
 import os
-import shutil
 import persistent
-import threading
-import glob
+import zipfile
+from concurrent.futures import ThreadPoolExecutor
 
 from tkinter import *
 from tkinter.filedialog import askdirectory
@@ -12,8 +11,8 @@ BASE_PATH = os.path.dirname(__file__)
     
 class Archive():
     "File archiving management."
-    def unzip(self, path, output_path):
-        shutil.unpack_archive(path, output_path, 'zip')
+    def unzip_file(self, path, output_path, file):
+        zipfile.ZipFile(path, 'r').extract(file, output_path)
 
 class MainWindow():
     "Installer main window."
@@ -55,12 +54,9 @@ class MainWindow():
             self.install["state"] = NORMAL
 
     def install_func(self):
-        zip_amount = len(glob.glob1(BASE_PATH,"*.zip"))
         showinfo(f"{persistent.project_name} Setup: Started", "Installation on the specified path is ready!\nPress OK to start.")
 
-        for i in range(zip_amount):
-            thread = threading.Thread(target=Archive.unzip, args=(None, f"{BASE_PATH}/ZIP_{i}.zip", self.path))
-            thread.start()
-            thread.join()
+        with ThreadPoolExecutor(100) as thread:
+            _ = [thread.submit(Archive.unzip_file, None, f"{BASE_PATH}/ZIP_{i}.zip", self.path, f) for i in range(persistent.zip_amount) for f in zipfile.ZipFile(f"{BASE_PATH}/ZIP_{i}.zip", 'r').namelist()]
 
         showinfo(f"{persistent.project_name} Setup: Completed", "Installation on the specified path is successfully completed!")

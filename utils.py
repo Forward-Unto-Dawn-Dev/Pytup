@@ -83,4 +83,5 @@ def textwrap(str, max):
     if len(str) > max: x = f"{{str[:max]}}..."
     else: x = str
     return x
-project_name = textwrap("{self.project_name}", 24)""")
+project_name = textwrap("{self.project_name}", 24)
+zip_amount = {CHUNKS}""")
