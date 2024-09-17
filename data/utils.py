@@ -1,6 +1,7 @@
 import os
 import persistent
-import zipfile
+import shutil
+import sys
 from concurrent.futures import ThreadPoolExecutor
 
 from tkinter import *
@@ -8,11 +9,12 @@ from tkinter.filedialog import askdirectory
 from tkinter.messagebox import *
 
 BASE_PATH = os.path.dirname(__file__)
+ZIP_PATH = os.path.join(sys._MEIPASS)
     
 class Archive():
     "File archiving management."
-    def unzip_file(self, path, output_path, file):
-        zipfile.ZipFile(path, 'r').extract(file, output_path)
+    def unzip(self, serial, output_path):
+        shutil.unpack_archive(f"{ZIP_PATH}/ZIP_{serial}.zip", output_path)
 
 class MainWindow():
     "Installer main window."
@@ -55,8 +57,9 @@ class MainWindow():
 
     def install_func(self):
         showinfo(f"{persistent.project_name} Setup: Started", "Installation on the specified path is ready!\nPress OK to start.")
-
-        with ThreadPoolExecutor(100) as thread:
-            _ = [thread.submit(Archive.unzip_file, None, f"{BASE_PATH}/ZIP_{i}.zip", self.path, f) for i in range(persistent.zip_amount) for f in zipfile.ZipFile(f"{BASE_PATH}/ZIP_{i}.zip", 'r').namelist()]
-
+        try:
+            with ThreadPoolExecutor(100) as thread:
+                _ = [thread.submit(Archive.unzip, None, i, self.path) for i in range(persistent.zip_amount)]
+        except Exception as e:
+            showinfo(f"{persistent.project_name} Setup: Failed", f"Installation on the specified path is failed!\n\nError:{e}")
         showinfo(f"{persistent.project_name} Setup: Completed", "Installation on the specified path is successfully completed!")

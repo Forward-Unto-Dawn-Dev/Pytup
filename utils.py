@@ -5,6 +5,7 @@ from datetime import date
 import inquirer
 import shutil
 import zipfile
+import subprocess
 
 import tkinter as tk
 from tkinter.filedialog import askdirectory
@@ -70,8 +71,9 @@ class InstallerGen():
     def __init__(self, project_name):
         self.project_name = project_name
         self.datapath = f"{BASE_PATH}/data/"
-        self.genpath = f"{BASE_PATH}/tmp/generated/GEN_{self.project_name}/"
+        self.genpath = f"{BASE_PATH}/tmp/generated/GEN_{self.project_name}"
         self.output_path = f"{BASE_PATH}/tmp/ZIP"
+        self.genfiles = []
     def copy_data(self):
         if not os.path.exists(self.genpath): pass
         else: shutil.rmtree(self.genpath)
@@ -85,3 +87,13 @@ def textwrap(str, max):
     return x
 project_name = textwrap("{self.project_name}", 24)
 zip_amount = {CHUNKS}""")
+    def generate_exe(self):
+        pyi = [r'pyinstaller',f"{self.genpath}/__main__.py",'--name',self.project_name,'--onefile','--windowed','--noconsole',f'--distpath', f'{BASE_PATH}/generated']
+        for root, dirs, files in os.walk(self.genpath):
+            for file in files:
+                if file != str("__main__.py"): self.genfiles.append(f"{root}/{file}:.")
+            for dir in dirs: self.genfiles.append(f"{root}/{dir}:.")
+        for i in self.genfiles:
+            pyi.append(f'--add-binary')
+            pyi.append(f"{i}")
+        subprocess.call(pyi, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
