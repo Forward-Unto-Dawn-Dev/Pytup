@@ -8,7 +8,7 @@ How to use this utility?
 1. Clone a repository.
 2. In the root folder containing the cloned repository, open CMD / PowerShell and type:
 
-    ```python Pytup-main```
+    ```python Pytup```
 
 3. Follow the CLI instructions.
 4. Get the finished .exe file as output!
