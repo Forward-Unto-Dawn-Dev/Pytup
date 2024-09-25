@@ -42,6 +42,12 @@ path_confirm = confirm('path_confirm', f"Are you sure?")
 if path_confirm.get('path_confirm') is 'Yes': pass
 else: sys.exit()
 
+if os.path.isdir(f"{BASE_PATH}/generated/{project_name}"):
+    print('\nThis project already exists in the generated projects folder! Utility will overwrite it.\n')
+    path_confirm = confirm('path_confirm', f"Are you sure?")
+    if path_confirm.get('path_confirm') is 'Yes': pass
+    else: sys.exit()
+
 print(f"""
 How many files would you like to divide the archives into?
 
@@ -106,6 +112,9 @@ if os.listdir(f"{BASE_PATH}/tmp/"):
     print('\nClearing folder of temp...')
     shutil.rmtree(f"{BASE_PATH}/tmp/")
     os.makedirs(f"{BASE_PATH}/tmp/")
+if os.path.isdir(f"{BASE_PATH}/generated/{project_name}"):
+    print('\nClearing folder of generated project (rewriting)...')
+    shutil.rmtree(f"{BASE_PATH}/generated/{project_name}")
 print('\nCreating...\n')
 output_path = Archive().output_path
 print('     Temp archive...')
@@ -115,8 +124,10 @@ print('     Temp scripts for installer...')
 print('         Copying files...')
 InstallerGen(project_name).copy_data()
 print('     Generating .exe file...')
+InstallerGen(project_name)._generate_exe()
 InstallerGen(project_name).generate_exe()
-print('     Cleaning...')
-print('         Removing: All temp files...')
-shutil.rmtree(f"{BASE_PATH}/tmp/")
+if CLEAN_TEMP_AFTER_GENERATION:
+    print('     Cleaning...')
+    print('         Removing: All temp files...')
+    shutil.rmtree(f"{BASE_PATH}/tmp/")
 print('\nSuccess!\nYour .exe file is located in the "generated" folder.\nThanks for using Pytup!\n')

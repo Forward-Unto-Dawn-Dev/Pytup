@@ -9,12 +9,15 @@ from tkinter.filedialog import askdirectory
 from tkinter.messagebox import *
 
 BASE_PATH = os.path.dirname(__file__)
-ZIP_PATH = os.path.join(sys._MEIPASS)
-    
-class Archive():
-    "File archiving management."
-    def unzip(self, serial, output_path):
-        shutil.unpack_archive(f"{ZIP_PATH}/ZIP_{serial}.zip", output_path)
+
+def unzip(serial, output_path):
+    with open(f"{BASE_PATH}/ZIP_{serial}", "rb") as f:
+        data = f.read()
+        data = persistent.encode.decrypt(data)
+    with open(f"{BASE_PATH}/ZIP_{serial}_TEMP.zip", "wb") as f:
+        f.write(data)
+    shutil.unpack_archive(f"{BASE_PATH}/ZIP_{serial}_TEMP.zip", output_path)
+    os.remove(f"{BASE_PATH}/ZIP_{serial}_TEMP.zip")
 
 class MainWindow():
     "Installer main window."
@@ -58,8 +61,9 @@ class MainWindow():
     def install_func(self):
         showinfo(f"{persistent.project_name} Setup: Started", "Installation on the specified path is ready!\nPress OK to start.")
         try:
-            with ThreadPoolExecutor(100) as thread:
-                _ = [thread.submit(Archive.unzip, None, i, self.path) for i in range(persistent.zip_amount)]
+            with ThreadPoolExecutor(10) as thread:
+                _ = [thread.submit(unzip, i, self.path) for i in range(persistent.zip_amount)]
         except Exception as e:
             showinfo(f"{persistent.project_name} Setup: Failed", f"Installation on the specified path is failed!\n\nError:{e}")
+            return
         showinfo(f"{persistent.project_name} Setup: Completed", "Installation on the specified path is successfully completed!")
