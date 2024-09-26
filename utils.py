@@ -1,7 +1,5 @@
 import os
 import sys
-import time
-from datetime import date
 import inquirer
 import shutil
 import zipfile
@@ -10,14 +8,27 @@ import subprocess
 import tkinter as tk
 from tkinter.filedialog import askdirectory
 
-from cryptography.fernet import Fernet
-
-DEBUG_EXE_GENERATE = False
-CLEAN_TEMP_AFTER_GENERATION = True
+## DO NOT CHANGE! IN CASE OF CHANGES, REQUESTS FOR ASSISTANCE WILL BE REJECTED.
 BASE_PATH = os.path.dirname(__file__)
 CHUNKS = 0
 
-k = Fernet.generate_key()
+class Config():
+    def __init__(self):
+        self.CHANGED = []
+        self.EXE_GENERATE = True
+        self.DEBUG_EXE_GENERATE = False
+        self.CLEAN_TEMP_AFTER_GENERATION = True
+    def check_default(self):
+        if not self.EXE_GENERATE:
+            self.CHANGED.append(f"EXE_GENERATE = {self.EXE_GENERATE}")
+        if self.DEBUG_EXE_GENERATE:
+            self.CHANGED.append(f"DEBUG_EXE_GENERATE = {self.DEBUG_EXE_GENERATE}")
+        if not self.CLEAN_TEMP_AFTER_GENERATION:
+            self.CHANGED.append(f"CLEAN_TEMP_AFTER_GENERATION = {self.CLEAN_TEMP_AFTER_GENERATION}")
+        if self.CHANGED != []:
+            print("WARN: Changes to the utility configurations have been detected:")
+            for i in self.CHANGED:
+                print(f"    {i}")
 
 def clear():
     "Clears the terminal."
@@ -66,7 +77,6 @@ class Archive():
     "File archiving management."
     def __init__(self):
         self.output_path = f"{BASE_PATH}/tmp"
-        self.encode = Fernet(k)
     def create(self, path, chunks, compression, compresslevel):
         for i in split_files(path, chunks):
             global CHUNKS
@@ -78,11 +88,9 @@ class Archive():
             with open(f"{self.output_path}/{i}", "rb") as f:
                 data = f.read()
                 f.close()
-            encrypted = self.encode.encrypt(data)
             file = i.split('.')[0]
             with open(f"{self.output_path}/{file}", "wb") as f:
-                f.write(encrypted)
-        for i in [each for each in os.listdir(self.output_path) if each.endswith('.zip')]:
+                f.write(data)
             os.remove(f"{self.output_path}/{i}")
 
 class InstallerGen():
@@ -98,18 +106,13 @@ class InstallerGen():
         copytree(self.datapath, self.genpath)
         for i in range(CHUNKS): shutil.move(f"{self.output_path}/ZIP_{i}", self.genpath)
         with open(f"{self.genpath}/persistent.py", "w") as f:
-            f.write(f"""from cryptography.fernet import Fernet
+            f.write(f"""
 def textwrap(str, max):
     if len(str) > max: x = f"{{str[:max]}}..."
     else: x = str
     return x
 project_name = textwrap("{self.project_name}", 24)
-zip_amount = {CHUNKS}
-##
-## Part of file encoding.
-##
-k = {k}
-encode = Fernet(k)""")
+zip_amount = {CHUNKS}""")
     def _generate_exe(self):
         for root, dirs, files in os.walk(self.genpath):
             for file in files:
@@ -124,5 +127,5 @@ encode = Fernet(k)""")
         for i in self.genfiles:
             pyi.append(f'--add-binary')
             pyi.append(f"{i}")
-        if not DEBUG_EXE_GENERATE: subprocess.call(pyi, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        if not Config().DEBUG_EXE_GENERATE: subprocess.call(pyi, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
         else: subprocess.call(pyi)

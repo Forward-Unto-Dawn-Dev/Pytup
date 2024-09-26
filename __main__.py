@@ -1,6 +1,9 @@
 from utils import *
 
 clear()
+
+Config().check_default()
+
 print(f"""
 
             Pytup: Creating Setup for Anything in Python! (by tetyastan)
@@ -123,11 +126,15 @@ Archive().create(path, files_len, compression, compresslevel)
 print('     Temp scripts for installer...')
 print('         Copying files...')
 InstallerGen(project_name).copy_data()
-print('     Generating .exe file...')
-InstallerGen(project_name)._generate_exe()
-InstallerGen(project_name).generate_exe()
-if CLEAN_TEMP_AFTER_GENERATION:
+if Config().EXE_GENERATE:
+    print('     Generating .exe file...')
+    InstallerGen(project_name)._generate_exe()
+    InstallerGen(project_name).generate_exe()
+if Config().CLEAN_TEMP_AFTER_GENERATION:
     print('     Cleaning...')
     print('         Removing: All temp files...')
     shutil.rmtree(f"{BASE_PATH}/tmp/")
-print('\nSuccess!\nYour .exe file is located in the "generated" folder.\nThanks for using Pytup!\n')
+print('\nSuccess!')
+if Config().EXE_GENERATE:
+    print('\nYour .exe file is located in the "generated" folder.')
+print('\nThanks for using Pytup!\n')

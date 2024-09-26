@@ -2,22 +2,28 @@ import os
 import persistent
 import shutil
 import sys
+import codecs
 from concurrent.futures import ThreadPoolExecutor
 
 from tkinter import *
 from tkinter.filedialog import askdirectory
 from tkinter.messagebox import *
 
+import traceback
+
 BASE_PATH = os.path.dirname(__file__)
 
 def unzip(serial, output_path):
-    with open(f"{BASE_PATH}/ZIP_{serial}", "rb") as f:
-        data = f.read()
-        data = persistent.encode.decrypt(data)
-    with open(f"{BASE_PATH}/ZIP_{serial}_TEMP.zip", "wb") as f:
-        f.write(data)
-    shutil.unpack_archive(f"{BASE_PATH}/ZIP_{serial}_TEMP.zip", output_path)
-    os.remove(f"{BASE_PATH}/ZIP_{serial}_TEMP.zip")
+    try:
+        with open(f"{BASE_PATH}/ZIP_{serial}", "rb") as f:
+            data = f.read()
+        with open(f"{BASE_PATH}/ZIP_{serial}_TEMP.zip", "wb") as f:
+            f.write(data)
+        shutil.unpack_archive(f"{BASE_PATH}/ZIP_{serial}_TEMP.zip", output_path)
+        os.remove(f"{BASE_PATH}/ZIP_{serial}_TEMP.zip")
+    except Exception:
+        print(f"\n{traceback.format_exc()}")
+        return
 
 class MainWindow():
     "Installer main window."
